@@ -1,9 +1,11 @@
 import sqlalchemy
 from sqlalchemy import orm
-from db_session import SqlAlchemyBase
+from .db_session import SqlAlchemyBase
 
 
 class Dislike(SqlAlchemyBase):
+    __tablename__ = 'dislikes'
+
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
     user_id = sqlalchemy.Column(sqlalchemy.Integer)
     song_id = sqlalchemy.Column(sqlalchemy.Integer)
