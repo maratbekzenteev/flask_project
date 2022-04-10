@@ -35,9 +35,8 @@ def search(search_title):
 def signin():
     form = SignInForm()
     if form.validate_on_submit():
-        print('valid')
         session = db_session.create_session()
-        user = session.query(User).filter(User.title == form.title.data)
+        user = session.query(User).filter(User.title == form.title.data).first()
         if user and user.check_password(form.password.data):
             login_user(user, remember=True)
             return flask.redirect(location='/')
