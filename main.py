@@ -3,7 +3,7 @@ from pages import blueprint
 from data import db_session
 from flask_login import LoginManager, login_user
 from data.users import User
-from forms import SignInForm
+from forms import SignInForm, SignUpForm
 
 app = flask.Flask(__name__)
 app.config['SECRET_KEY'] = 'beta-secret-key'
@@ -43,6 +43,27 @@ def signin():
         return flask.render_template('signin.html', title='Войти',
                                      form=form, message='Неверное имя пользователя или пароль')
     return flask.render_template('signin.html', title='Войти', form=form)
+
+
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    form = SignUpForm()
+    if form.validate_on_submit():
+        if form.password.data != form.password_2.data:
+            return flask.render_template('signup.html', title='Зарегистрироваться',
+                                   form=form,
+                                   message="Пароли не совпадают")
+        session = db_session.create_session()
+        if session.query(User).filter(User.title == form.title.data).first():
+            return flask.render_template('signup.html', title='Зарегистрироваться',
+                                   form=form,
+                                   message="Это имя пользователя уже занято")
+        user = User(title=form.title.data)
+        user.set_password(form.password.data)
+        session.add(user)
+        session.commit()
+        return flask.redirect('/signin')
+    return flask.render_template('signup.html', title='Зарегистрироваться', form=form)
 
 
 @login_manager.user_loader

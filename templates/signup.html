@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Вход в систему</h2>
+<h2>Регистрация в системе</h2>
 <form method="post" class="main" action="" novalidate>
 <table cellpadding="5px">
     {{ form.hidden_tag() }}
@@ -13,10 +13,13 @@
         <td>{{ form.password(type="password") }}</td>
     </tr>
     <tr>
+        <td>{{ form.password_2.label }}</td>
+        <td>{{ form.password_2(type="password") }}</td>
+    </tr>
+    <tr>
         <td>{{ form.submit(type="submit", class="form-submit") }}</td>
         <td>{{ message }}</td>
     </tr>
 </table>
-    <p>Нет аккаунта? <a href="/signup">Зарегистрируйтесь</a>
 </form>
 {% endblock %}
