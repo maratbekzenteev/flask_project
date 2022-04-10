@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="main-body">
 <h4>Запрос: {{ search_title }}</h4>
 <h3>Результаты поиска по музыкантам:</h3>
 <ul class="search-results">
@@ -14,5 +13,4 @@
     <li class="search-element">{{ i['title'] }}</li>
     {% endfor %}
 </ul>
-</div>
 {% endblock %}

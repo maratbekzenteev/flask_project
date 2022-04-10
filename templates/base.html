@@ -43,6 +43,10 @@
     display: block;
     }
 
+    .topnav a:hover {
+    color: #DDDDDD;
+    }
+
 
     .topnav .search-container {
     padding-top: 10px;
@@ -63,14 +67,22 @@
 </head>
     <body>
     <nav class="topnav">
-        <p><strong>The Music Resource</strong></p>
+        <p><strong>Music</strong></p>
+        {% if current_user.is_authenticated %}
+        <a href="/profile">Мой профиль</a>
+        {% else %}
+        <a href="/signin">Войти</a>
+        {% endif %}
         <a href="/song-submit">Загрузить песню</a>
+        <a href="/licence">Правообладателям</a>
         <a href="/about">О нас</a>
         <form class="search-container" method="post" enctype="multipart/form-data">
             <input class="form-group" type="text" name="search_title" placeholder="Искать...">
             <button type="submit" class="form-submit"><strong>></strong></button>
         </form>
     </nav>
+    <div class="main-body">
     {% block content %}{% endblock %}
+    </div>
     </body>
 </html>
