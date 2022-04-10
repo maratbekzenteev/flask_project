@@ -9,7 +9,7 @@ class User(SqlAlchemyBase, UserMixin):
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
     title = sqlalchemy.Column(sqlalchemy.String, unique=True)
-    hashed_password = sqlalchemy.Column(sqlalchemy.Integer, unique=True)
+    hashed_password = sqlalchemy.Column(sqlalchemy.String)
     playlist = sqlalchemy.Column(sqlalchemy.String, nullable=True)
 
     songs = sqlalchemy.orm.relation('Song', back_populates='user')
