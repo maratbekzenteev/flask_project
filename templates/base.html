@@ -77,11 +77,6 @@
     color: #ffffff;
     border-color: #ffffff;
     }
-
-    .main-body input {
-    border-style: default;
-    border-color: #BBBBBB
-    }
     </style>
 </head>
     <body>
@@ -89,10 +84,10 @@
         <p><strong>Music</strong></p>
         {% if current_user.is_authenticated %}
         <a href="/profile">Мой профиль</a>
+        <a href="/song-submit">Загрузить песню</a>
         {% else %}
         <a href="/signin">Войти</a>
         {% endif %}
-        <a href="/song-submit">Загрузить песню</a>
         <a href="/licence">Правообладателям</a>
         <a href="/about">О нас</a>
         <form class="search-container" method="post" action="" novalidate>

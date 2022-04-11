@@ -1,8 +1,14 @@
 import flask
+import os
+import flask_login
+
 from data import db_session
 from flask_login import LoginManager, login_user
 from data.users import User
-from forms import SignInForm, SignUpForm, SearchForm
+from data.artists import Artist
+from data.songs import Song
+from data.genres import Genre
+from forms import SignInForm, SignUpForm, SearchForm, SongSubmitForm
 
 app = flask.Flask(__name__)
 app.config['SECRET_KEY'] = 'beta-secret-key'
@@ -83,6 +89,49 @@ def signup():
         return flask.redirect('/signin')
     return flask.render_template('signup.html', title='Зарегистрироваться', form=form,
                                  search_form=search_form)
+
+
+@app.route('/song-submit', methods=['GET', 'POST'])
+def song_submit():
+    search_form = SearchForm()
+    if search_form.validate_on_submit():
+        return flask.redirect(location=flask.url_for('search',
+                                                     search_title=search_form.search_title.data,
+                                                     search_form=search_form))
+    form = SongSubmitForm()
+    if form.validate_on_submit():
+        print(form.img.data)
+        img_name = form.img.data.filename
+        wav_name = form.wav.data.filename
+        if img_name[img_name.rfind('.'):] not in ['.jpg', '.png', '.gif'] or \
+                wav_name[wav_name.rfind('.'):] not in ['.mp3', '.wav', '.ogg']:
+            return flask.render_template('song_submit.html', title='Загрузить песню', form=form,
+                                         search_form=search_form, message='Неверный формат файлов')
+        if os.access('static/img/' + img_name, os.F_OK) or os.access('static/wav' + wav_name, os.F_OK):
+            return flask.render_template('song_submit.html', title='Загрузить песню', form=form,
+                                         search_form=search_form, message='Файлы с такими именами уже есть на сервере')
+        session = db_session.create_session()
+        artist = session.query(Artist).filter(
+            Artist.title.like('%' + form.artist.data + '%')).first()
+        if not artist:
+            return flask.render_template('song_submit.html', title='Загрузить песню', form=form,
+                                         search_form=search_form, message='Указанного исполнителя нет в базе')
+        genre = session.query(Genre).filter(Genre.title == form.genre.data).first()
+        form.img.data.save('static/img/' + img_name)
+        form.wav.data.save('static/wav/' + wav_name)
+        song = Song(
+            title=form.title.data,
+            artist_id=artist.id,
+            genre_id=genre.id,
+            user_id=flask_login.current_user.id,
+            img_name=img_name,
+            wav_name=wav_name
+        )
+        session.add(song)
+        session.commit()
+        return flask.redirect('/')
+    return flask.render_template('song_submit.html', title='Загрузить песню', form=form,
+                          search_form=search_form)
 
 
 @login_manager.user_loader
