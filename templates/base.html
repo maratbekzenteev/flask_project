@@ -61,8 +61,15 @@
     float: right;
     }
 
-    .topnav .search-container input {
+    .topnav .search-container input[type="text"] {
     border-style: none;
+    }
+
+    .topnav .search-container input[type="submit"] {
+    border-style: default;
+    background-color: #000000;
+    color: #ffffff;
+    border-color: #ffffff;
     }
 
     .topnav .search-container button {
@@ -71,7 +78,7 @@
     border-color: #ffffff;
     }
 
-    .main-body input[type="submit"] {
+    .main-body input {
     border-style: default;
     border-color: #BBBBBB
     }
@@ -88,9 +95,10 @@
         <a href="/song-submit">Загрузить песню</a>
         <a href="/licence">Правообладателям</a>
         <a href="/about">О нас</a>
-        <form class="search-container" method="post" enctype="multipart/form-data">
-            <input class="form-group" type="text" name="search_title" placeholder="Искать...">
-            <button type="submit" class="form-submit"><strong>></strong></button>
+        <form class="search-container" method="post" action="" novalidate>
+            {{ search_form.hidden_tag() }}
+            {{ search_form.search_title(class="form-group", type="text", placeholder="Искать...") }}
+            {{ search_form.submit(type="submit", class="form-submit") }}
         </form>
     </nav>
     <div class="main-body">
