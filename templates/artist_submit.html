@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 {% if current_user.is_authenticated %}
-<h2>Загрузка песни</h2>
+<h2>Добавление исполнителя</h2>
 <form method="post" class="main" action="" enctype="multipart/form-data" novalidate>
 <table cellpadding="5px">
     {{ form.hidden_tag() }}
@@ -10,30 +10,16 @@
         <td>{{ form.title(type="title") }}</td>
     </tr>
     <tr>
-        <td>{{ form.artist.label }}</td>
-        <td>{{ form.artist }}</td>
-    </tr>
-    <tr>
-        <td>{{ form.genre.label }}</td>
-        <td>{{ form.genre }}</td>
-    </tr>
-    <tr>
         <td>{{ form.img.label }}</td>
         <td>{{ form.img(type="file", class="file", id="img") }}</td>
-    </tr>
-    <tr>
-        <td>{{ form.wav.label }}</td>
-        <td>{{ form.wav(type="file", class="file", id="wav") }}</td>
     </tr>
     <tr>
         <td>{{ form.submit(type="submit", class="form-submit") }}</td>
         <td>{{ message }}</td>
     </tr>
 </table>
-    <p>Нет нужного исполнителя? <a href="/artist-submit">Добавьте</a>
-    <p>Нет нужного жанра? <a href="/genre-submit">Добавьте</a>
 </form>
 {% else %}
-<h2>Чтобы загрузить песню, нужно авторизоваться.</h2>
+<h2>Чтобы добавить исполнителя, нужно авторизоваться.</h2>
 {% endif %}
 {% endblock %}

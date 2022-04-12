@@ -8,7 +8,8 @@ from data.users import User
 from data.artists import Artist
 from data.songs import Song
 from data.genres import Genre
-from forms import SignInForm, SignUpForm, SearchForm, SongSubmitForm
+from forms import SignInForm, SignUpForm, SearchForm, SongSubmitForm, \
+    ArtistSubmitForm, GenreSubmitForm
 
 app = flask.Flask(__name__)
 app.config['SECRET_KEY'] = 'beta-secret-key'
@@ -23,9 +24,7 @@ db_session.global_init("db/music.db")
 def home():
     search_form = SearchForm()
     if search_form.validate_on_submit():
-        return flask.redirect(location=flask.url_for('search',
-                                                     search_title=search_form.search_title.data,
-                                                     search_form=search_form))
+        return flask.redirect(flask.url_for('search', search_title=search_form.search_title.data))
     return flask.render_template('home.html', title='Домашняя страница', search_form=search_form)
 
 
@@ -33,9 +32,7 @@ def home():
 def search(search_title):
     search_form = SearchForm()
     if search_form.validate_on_submit():
-        return flask.redirect(location=flask.url_for('search',
-                                                     search_title=search_form.search_title.data,
-                                                     search_form=search_form))
+        return flask.redirect(flask.url_for('search', search_title=search_form.search_title.data))
     return flask.render_template('search.html', title='Результаты поиска',
                                  artists=[{'name': 'Beatles'}, {'name': 'AC/DC'}],
                                  songs=[{'title': 'Hey Jude'}, {'title': 'Welcome to the jungle'}],
@@ -46,9 +43,7 @@ def search(search_title):
 def signin():
     search_form = SearchForm()
     if search_form.validate_on_submit():
-        return flask.redirect(location=flask.url_for('search',
-                                                     search_title=search_form.search_title.data,
-                                                     search_form=search_form))
+        return flask.redirect(flask.url_for('search', search_title=search_form.search_title.data))
     form = SignInForm()
     if form.validate_on_submit():
         session = db_session.create_session()
@@ -66,9 +61,7 @@ def signin():
 def signup():
     search_form = SearchForm()
     if search_form.validate_on_submit():
-        return flask.redirect(location=flask.url_for('search',
-                                                     search_title=search_form.search_title.data,
-                                                     search_form=search_form))
+        return flask.redirect(flask.url_for('search', search_title=search_form.search_title.data))
     form = SignUpForm()
     if form.validate_on_submit():
         if form.password.data != form.password_2.data:
@@ -95,12 +88,9 @@ def signup():
 def song_submit():
     search_form = SearchForm()
     if search_form.validate_on_submit():
-        return flask.redirect(location=flask.url_for('search',
-                                                     search_title=search_form.search_title.data,
-                                                     search_form=search_form))
+        return flask.redirect(flask.url_for('search', search_title=search_form.search_title.data))
     form = SongSubmitForm()
     if form.validate_on_submit():
-        print(form.img.data)
         img_name = form.img.data.filename
         wav_name = form.wav.data.filename
         if img_name[img_name.rfind('.'):] not in ['.jpg', '.png', '.gif'] or \
@@ -132,6 +122,61 @@ def song_submit():
         return flask.redirect('/')
     return flask.render_template('song_submit.html', title='Загрузить песню', form=form,
                           search_form=search_form)
+
+
+@app.route('/artist-submit', methods=['GET', 'POST'])
+def artist_submit():
+    search_form = SearchForm()
+    if search_form.validate_on_submit():
+        return flask.redirect(flask.url_for('search', search_title=search_form.search_title.data))
+    form = ArtistSubmitForm()
+    if form.validate_on_submit():
+        img_name = form.img.data.filename
+        if img_name[img_name.rfind('.'):] not in ['.jpg', '.png', '.gif']:
+            return flask.render_template("artist_submit.html", title='Добавить исполнителя',
+                                         form=form, search_form=search_form,
+                                         message='Неверный формат файла')
+        if os.access('static/img/' + img_name, os.F_OK):
+            return flask.render_template("artist_submit.html", title='Добавить исполнителя',
+                                         form=form, search_form=search_form,
+                                         message='Файл с таким именем уже есть на сервере')
+        session = db_session.create_session()
+        artist = session.query(Artist).filter(Artist.title == form.title.data).first()
+        if artist:
+            return flask.render_template("artist_submit.html", title='Добавить исполнителя',
+                                         form=form, search_form=search_form,
+                                         message='Такой исполнитель уже есть в базе')
+        form.img.data.save('static/img/' + img_name)
+        artist = Artist(
+            title=form.title.data,
+            img_name=img_name
+        )
+        session.add(artist)
+        session.commit()
+        return flask.redirect('/')
+    return flask.render_template("artist_submit.html", title='Добавить исполнителя',
+                                 form=form, search_form=search_form)
+
+
+@app.route('/genre-submit', methods=['GET', 'POST'])
+def genre_submit():
+    search_form = SearchForm()
+    if search_form.validate_on_submit():
+        return flask.redirect(flask.url_for('search', search_title=search_form.search_title.data))
+    form = GenreSubmitForm()
+    if form.validate_on_submit():
+        session = db_session.create_session()
+        genre = session.query(Genre).filter(Genre.title == form.title.data.lower()).first()
+        if genre:
+            return flask.render_template("genre_submit.html", title='Добавить жанр',
+                                         form=form, search_form=search_form,
+                                         message='Такой жанр уже есть')
+        genre = Genre(title=form.title.data.lower())
+        session.add(genre)
+        session.commit()
+        return flask.redirect('/')
+    return flask.render_template("genre_submit.html", title='Добавить жанр',
+                                 form=form, search_form=search_form)
 
 
 @login_manager.user_loader

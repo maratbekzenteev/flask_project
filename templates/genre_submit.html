@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+{% if current_user.is_authenticated %}
+<h2>Добавление жанра</h2>
+<form method="post" class="main" action="" enctype="multipart/form-data" novalidate>
+<table cellpadding="5px">
+    {{ form.hidden_tag() }}
+    <tr>
+        <td>{{ form.title.label }}</td>
+        <td>{{ form.title(type="title") }}</td>
+    </tr>
+    <tr>
+        <td>{{ form.submit(type="submit", class="form-submit") }}</td>
+        <td>{{ message }}</td>
+    </tr>
+</table>
+</form>
+{% else %}
+<h2>Чтобы добавить жанр, нужно авторизоваться.</h2>
+{% endif %}
+{% endblock %}

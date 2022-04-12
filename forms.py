@@ -34,3 +34,14 @@ class SongSubmitForm(FlaskForm):
     img = FileField('Обложка песни', validators=[DataRequired()])
     wav = FileField('Аудиодорожка', validators=[DataRequired()])
     submit = SubmitField('Загрузить')
+
+
+class ArtistSubmitForm(FlaskForm):
+    title = StringField('Название исполнителя', validators=[DataRequired()])
+    img = FileField('Фото исполнителя', validators=[DataRequired()])
+    submit = SubmitField('Добавить')
+
+
+class GenreSubmitForm(FlaskForm):
+    title = StringField('Название жанра', validators=[DataRequired()])
+    submit = SubmitField('Добавить')
