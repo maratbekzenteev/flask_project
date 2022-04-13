@@ -9,7 +9,7 @@ from data.artists import Artist
 from data.songs import Song
 from data.genres import Genre
 from forms import SignInForm, SignUpForm, SearchForm, SongSubmitForm, \
-    ArtistSubmitForm, GenreSubmitForm
+    ArtistSubmitForm, GenreSubmitForm, CatalogueForm
 
 app = flask.Flask(__name__)
 app.config['SECRET_KEY'] = 'beta-secret-key'
@@ -33,9 +33,11 @@ def search(search_title):
     search_form = SearchForm()
     if search_form.validate_on_submit():
         return flask.redirect(flask.url_for('search', search_title=search_form.search_title.data))
+    session = db_session.create_session()
+    songs = session.query(Song).filter(Song.title.like('%' + search_title + '%')).all()
+    artists = session.query(Artist).filter(Artist.title.like('%' + search_title + '%')).all()
     return flask.render_template('search.html', title='Результаты поиска',
-                                 artists=[{'name': 'Beatles'}, {'name': 'AC/DC'}],
-                                 songs=[{'title': 'Hey Jude'}, {'title': 'Welcome to the jungle'}],
+                                 artists=artists, songs=songs,
                                  search_title=search_title, search_form=search_form)
 
 
@@ -82,6 +84,35 @@ def signup():
         return flask.redirect('/signin')
     return flask.render_template('signup.html', title='Зарегистрироваться', form=form,
                                  search_form=search_form)
+
+
+@app.route('/catalogue', methods=['GET', 'POST'])
+def catalogue():
+    search_form = SearchForm()
+    if search_form.validate_on_submit():
+        return flask.redirect(flask.url_for('search', search_title=search_form.search_title.data))
+    form = CatalogueForm()
+    if form.validate_on_submit():
+        return flask.redirect(flask.url_for('catalogue_filter', genre=form.genre.data))
+    session = db_session.create_session()
+    songs = session.query(Song).all()
+    return flask.render_template('catalogue.html', title='Каталог', form=form,
+                                 search_form=search_form, songs=songs)
+
+
+@app.route('/catalogue/<string:genre>', methods=['GET', 'POST'])
+def catalogue_filter(genre):
+    search_form = SearchForm()
+    if search_form.validate_on_submit():
+        return flask.redirect(flask.url_for('search', search_title=search_form.search_title.data))
+    form = CatalogueForm()
+    if form.validate_on_submit():
+        return flask.redirect(flask.url_for('catalogue_filter', genre=form.genre.data))
+    session = db_session.create_session()
+    genre_id = session.query(Genre).filter(Genre.title == genre).first().id
+    songs = session.query(Song).filter(Song.genre_id == genre_id).all()
+    return flask.render_template('catalogue.html', title='Каталог', form=form,
+                                 search_form=search_form, songs=songs)
 
 
 @app.route('/song-submit', methods=['GET', 'POST'])

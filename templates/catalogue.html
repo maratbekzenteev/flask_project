@@ -1,34 +1,15 @@
 {% extends "base.html" %}
 {% block content %}
-<h4>Запрос: {{ search_title }}</h4>
-<h3>Результаты поиска по исполнителям:</h3>
-{% if artists %}
-<div class="list">
-    <table cellpadding="7px">
-        <tr bgcolor="#ffffff">
-            <td width="15%">Номер</td>
-            <td width="35%">Название</td>
-        </tr>
-        {% for artist in artists %}
-        {% if loop.index % 2 == 0 %}
-        <tr bgcolor="#ffffff">
-            <td width="15%">{{ loop.index}}</td>
-            <td width="35%"><a href={{ "/artist/" + artist.id|string }}>{{ artist.title }}</a></td>
-        </tr>
-        {% else %}
-        <tr bgcolor="#eeeeee">
-            <td width="15%">{{ loop.index}}</td>
-            <td width="35%"><a href={{ "/artist/" + artist.id|string }}>{{ artist.title }}</a></td>
-        </tr>
-        {% endif %}
-        {% endfor %}
-    </table>
+<h2>Каталог песен</h2>
+<div class="filter">
+    <form class="catalogue-filter" method="post" action="" novalidate>
+    {{ form.hidden_tag() }}
+        <span>{{ form.genre.label }}</span>
+        <span>{{ form.genre }}</span>
+        <span>{{ form.submit(type="submit", class="form-submit") }}</span>
+        <span><a href="/catalogue">Сбросить фильтр</a></span>
+    </form>
 </div>
-{% else %}
-К сожалению, ничего не нашлось
-{% endif %}
-<h3>Результаты поиска по песням:</h3>
-{% if songs %}
 <div class="list">
     <table cellpadding="7px">
         <tr bgcolor="#ffffff">
@@ -56,7 +37,4 @@
         {% endfor %}
     </table>
 </div>
-{% else %}
-К сожалению, ничего не нашлось
-{% endif %}
 {% endblock %}

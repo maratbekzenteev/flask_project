@@ -45,3 +45,10 @@ class ArtistSubmitForm(FlaskForm):
 class GenreSubmitForm(FlaskForm):
     title = StringField('Название жанра', validators=[DataRequired()])
     submit = SubmitField('Добавить')
+
+
+class CatalogueForm(FlaskForm):
+    session = db_session.create_session()
+    genres = session.query(Genre).all()
+    genre = SelectField('Жанр', choices=([''] + [i.title for i in genres]), validators=[DataRequired()])
+    submit = SubmitField('Обновить')
