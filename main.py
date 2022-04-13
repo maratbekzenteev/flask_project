@@ -128,9 +128,6 @@ def song_submit():
                 wav_name[wav_name.rfind('.'):] not in ['.mp3', '.wav', '.ogg']:
             return flask.render_template('song_submit.html', title='Загрузить песню', form=form,
                                          search_form=search_form, message='Неверный формат файлов')
-        if os.access('static/img/' + img_name, os.F_OK) or os.access('static/wav' + wav_name, os.F_OK):
-            return flask.render_template('song_submit.html', title='Загрузить песню', form=form,
-                                         search_form=search_form, message='Файлы с такими именами уже есть на сервере')
         session = db_session.create_session()
         artist = session.query(Artist).filter(
             Artist.title.like('%' + form.artist.data + '%')).first()
@@ -138,15 +135,20 @@ def song_submit():
             return flask.render_template('song_submit.html', title='Загрузить песню', form=form,
                                          search_form=search_form, message='Указанного исполнителя нет в базе')
         genre = session.query(Genre).filter(Genre.title == form.genre.data).first()
-        form.img.data.save('static/img/' + img_name)
-        form.wav.data.save('static/wav/' + wav_name)
+        current_id = session.query(Song).order_by(-Song.id).first()
+        if not current_id:
+            current_id = 1
+        else:
+            current_id = current_id.id + 1
+        form.img.data.save('static/songs_img/' + str(current_id) + img_name[img_name.rfind('.'):])
+        form.wav.data.save('static/wav/' + str(current_id) + wav_name[wav_name.rfind('.'):])
         song = Song(
             title=form.title.data,
             artist_id=artist.id,
             genre_id=genre.id,
             user_id=flask_login.current_user.id,
-            img_name=img_name,
-            wav_name=wav_name
+            img_name=str(current_id) + img_name[img_name.rfind('.'):],
+            wav_name=str(current_id) + wav_name[wav_name.rfind('.'):]
         )
         session.add(song)
         session.commit()
@@ -167,20 +169,21 @@ def artist_submit():
             return flask.render_template("artist_submit.html", title='Добавить исполнителя',
                                          form=form, search_form=search_form,
                                          message='Неверный формат файла')
-        if os.access('static/img/' + img_name, os.F_OK):
-            return flask.render_template("artist_submit.html", title='Добавить исполнителя',
-                                         form=form, search_form=search_form,
-                                         message='Файл с таким именем уже есть на сервере')
         session = db_session.create_session()
         artist = session.query(Artist).filter(Artist.title == form.title.data).first()
         if artist:
             return flask.render_template("artist_submit.html", title='Добавить исполнителя',
                                          form=form, search_form=search_form,
                                          message='Такой исполнитель уже есть в базе')
-        form.img.data.save('static/img/' + img_name)
+        current_id = session.query(Artist).order_by(-Artist.id).first()
+        if not current_id:
+            current_id = 1
+        else:
+            current_id = current_id.id + 1
+        form.img.data.save('static/artists_img/' + str(current_id) + img_name[img_name.rfind('.'):])
         artist = Artist(
             title=form.title.data,
-            img_name=img_name
+            img_name=str(current_id) + img_name[img_name.rfind('.'):]
         )
         session.add(artist)
         session.commit()
