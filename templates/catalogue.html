@@ -11,12 +11,12 @@
     </form>
 </div>
 <div class="list">
-    <table cellpadding="7px">
+    <table cellpadding="7px" width="100%">
         <tr bgcolor="#ffffff">
-            <td width="15%">Номер</td>
-            <td width="35%">Название</td>
-            <td width="35%">Исполнитель</td>
-            <td width="15%">Жанр</td>
+            <th width="15%">Номер</th>
+            <th width="35%">Название</th>
+            <th width="35%">Исполнитель</th>
+            <th width="15%">Жанр</th>
         </tr>
         {% for song in songs %}
         {% if loop.index % 2 == 0 %}

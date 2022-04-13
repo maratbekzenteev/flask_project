@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<table width="100%" cellpadding="5px" class="list">
+    <tr bgcolor="#ffffff">
+        <td align="center" rowspan="7" bgcolor="eeeeee" width="30%"><img align="center" src="{{ img_url }}"></td>
+        <td><strong>Название: </strong>{{ song.title }}</td>
+    </tr>
+    <tr bgcolor="eeeeee">
+        <td><strong>Исполнитель: </strong><a href={{ "/artist/" + song.artist_id|string }}>{{ song.artist.title }}</a></td>
+    </tr>
+    <tr bgcolor="ffffff">
+        <td><strong>Жанр: </strong>{{ song.genre.title }}</td>
+    </tr>
+    <tr bgcolor="eeeeee">
+        <td><strong>Добавил юзер: </strong>{{ song.user.title }}</td>
+    </tr>
+    <tr bgcolor="ffffff">
+        <td><audio controls src="{{ wav_url }}"></audio></td>
+    </tr>
+    <tr bgcolor="eeeeee">
+        <td>Нравится {{ likes }} людям. Не нравится {{ dislikes }} людям.</td>
+    </tr>
+    <tr bgcolor="ffffff">
+        <td>
+        {% if current_user.is_authenticated %}
+        {% if my_like %}
+        <a href={{ "like/" + song.id|string }}>Мне нравится</button>
+        {% else %}
+        <a href={{ "like/" + song.id|string }}>Мне нравится</button>
+        {% endif %}
+        {% if my_dislike %}
+        <a href={{ "dislike/" + song.id|string }}>Мне не нравится</button>
+        {% else %}
+        <a href={{ "dislike/" + song.id|string }}>Мне не нравится</button>
+        {% endif %}
+        {% endif %}
+        </td>
+    </tr>
+</table>
+{% endblock %}

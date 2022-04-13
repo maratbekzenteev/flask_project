@@ -1,0 +1,61 @@
+body {
+margin: 0;
+}
+.main-body {
+margin-left: 15px;
+margin-top: 15px;
+}
+.main-body .list {
+display: block;
+}
+.main-body .list a {
+color: #0000ff
+}
+.main-body .list a:hover {
+color: #000080
+}
+.topnav {
+overflow: hidden;
+background-color: #222222;
+}
+.topnav p {
+float: left;
+display: block;
+color: white;
+text-align: left;
+padding-left: 7px;
+padding-top: 10px;
+text-decoration: none;
+font-size: 18px;
+}
+.topnav a {
+color: #BBBBBB;
+padding-left: 15px;
+padding-top: 13px;
+float: left;
+text-decoration: none;
+display: block;
+}
+.topnav a:hover {
+color: #DDDDDD;
+}
+a {
+color: #999999;
+text-decoration: none;
+}
+a:hover {
+color: #BBBBBB;
+}
+.topnav .search-container {
+padding-top: 10px;
+float: right;
+}
+.topnav .search-container input[type="text"] {
+border-style: none;
+}
+.topnav .search-container input[type="submit"] {
+border-style: default;
+background-color: #000000;
+color: #ffffff;
+border-color: #ffffff;
+}

@@ -1,5 +1,4 @@
 import flask
-import os
 import flask_login
 
 from data import db_session
@@ -8,6 +7,8 @@ from data.users import User
 from data.artists import Artist
 from data.songs import Song
 from data.genres import Genre
+from data.likes import Like
+from data.dislikes import Dislike
 from forms import SignInForm, SignUpForm, SearchForm, SongSubmitForm, \
     ArtistSubmitForm, GenreSubmitForm, CatalogueForm
 
@@ -211,6 +212,26 @@ def genre_submit():
         return flask.redirect('/')
     return flask.render_template("genre_submit.html", title='Добавить жанр',
                                  form=form, search_form=search_form)
+
+
+@app.route('/song/<int:song_id>')
+def song_page(song_id):
+    search_form = SearchForm()
+    if search_form.validate_on_submit():
+        return flask.redirect(flask.url_for('search', search_title=search_form.search_title.data))
+    session = db_session.create_session()
+    song = session.query(Song).filter(Song.id == song_id).first()
+    my_like = len(session.query(Like).filter(
+        Like.song_id == song_id, Like.user_id == flask_login.current_user.id).all())
+    my_dislike = len(session.query(Dislike).filter(
+        Dislike.song_id == song_id, Dislike.user_id == flask_login.current_user.id).all())
+    likes = len(session.query(Like).filter(Like.song_id == song_id).all())
+    dislikes = len(session.query(Dislike).filter(Dislike.song_id == song_id).all())
+    img_url = flask.url_for('static', filename='songs_img/' + song.img_name)
+    wav_url = flask.url_for('static', filename='wav/' + song.wav_name)
+    return flask.render_template("song_page.html", title=song.artist.title + ' - ' + song.title, img_url=img_url,
+                                 wav_url=wav_url, song=song, likes=likes, dislikes=dislikes,
+                                 search_form=search_form, my_like=my_like, my_dislike=my_dislike)
 
 
 @login_manager.user_loader

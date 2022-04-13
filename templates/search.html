@@ -4,10 +4,10 @@
 <h3>Результаты поиска по исполнителям:</h3>
 {% if artists %}
 <div class="list">
-    <table cellpadding="7px">
+    <table cellpadding="7px" width="100%">
         <tr bgcolor="#ffffff">
-            <td width="15%">Номер</td>
-            <td width="35%">Название</td>
+            <th width="15%">Номер</th>
+            <th width="35%">Название</th>
         </tr>
         {% for artist in artists %}
         {% if loop.index % 2 == 0 %}
@@ -30,12 +30,12 @@
 <h3>Результаты поиска по песням:</h3>
 {% if songs %}
 <div class="list">
-    <table cellpadding="7px">
+    <table cellpadding="7px" width="100%">
         <tr bgcolor="#ffffff">
-            <td width="15%">Номер</td>
-            <td width="35%">Название</td>
-            <td width="35%">Исполнитель</td>
-            <td width="15%">Жанр</td>
+            <th width="15%">Номер</th>
+            <th width="35%">Название</th>
+            <th width="35%">Исполнитель</th>
+            <th width="15%">Жанр</th>
         </tr>
         {% for song in songs %}
         {% if loop.index % 2 == 0 %}
