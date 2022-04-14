@@ -18,20 +18,25 @@
         <td><audio controls src="{{ wav_url }}"></audio></td>
     </tr>
     <tr bgcolor="eeeeee">
-        <td>Нравится {{ likes }} людям. Не нравится {{ dislikes }} людям.</td>
+        <td>Нравится {{ likes }} людям{% if my_like %}(включая меня){% endif %}. Не нравится {{ dislikes }} людям{% if my_dislike %}(включая меня){% endif %}.</td>
     </tr>
     <tr bgcolor="ffffff">
         <td>
         {% if current_user.is_authenticated %}
         {% if my_like %}
-        <a href={{ "like/" + song.id|string }}>Мне нравится</button>
+        <a href={{ "/like/" + song.id|string }}>Мне нравится</a>
         {% else %}
-        <a href={{ "like/" + song.id|string }}>Мне нравится</button>
+        <a href={{ "/like/" + song.id|string }}>Мне нравится</a>
         {% endif %}
         {% if my_dislike %}
-        <a href={{ "dislike/" + song.id|string }}>Мне не нравится</button>
+        <a href={{ "/dislike/" + song.id|string }}>Мне не нравится</a>
         {% else %}
-        <a href={{ "dislike/" + song.id|string }}>Мне не нравится</button>
+        <a href={{ "/dislike/" + song.id|string }}>Мне не нравится</a>
+        {% endif %}
+        {% if in_playlist %}
+        <a href={{ "/playlist/" + song.id|string }}>Удалить из плейлиста</a>
+        {% else %}
+        <a href={{ "/playlist/" + song.id|string }}>Добавить в плейлист</a>
         {% endif %}
         {% endif %}
         </td>

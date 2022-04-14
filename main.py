@@ -198,6 +198,7 @@ def genre_submit():
     search_form = SearchForm()
     if search_form.validate_on_submit():
         return flask.redirect(flask.url_for('search', search_title=search_form.search_title.data))
+    from forms import GenreSubmitForm
     form = GenreSubmitForm()
     if form.validate_on_submit():
         session = db_session.create_session()
@@ -229,9 +230,68 @@ def song_page(song_id):
     dislikes = len(session.query(Dislike).filter(Dislike.song_id == song_id).all())
     img_url = flask.url_for('static', filename='songs_img/' + song.img_name)
     wav_url = flask.url_for('static', filename='wav/' + song.wav_name)
-    return flask.render_template("song_page.html", title=song.artist.title + ' - ' + song.title, img_url=img_url,
-                                 wav_url=wav_url, song=song, likes=likes, dislikes=dislikes,
-                                 search_form=search_form, my_like=my_like, my_dislike=my_dislike)
+    if flask_login.current_user.playlist:
+        in_playlist = song_id in {int(i) for i in flask_login.current_user.playlist.split(', ')}
+    else:
+        in_playlist = False
+    return flask.render_template("song_page.html", title=song.title, song=song,
+                                 wav_url=wav_url, img_url=img_url, likes=likes, dislikes=dislikes,
+                                 search_form=search_form, my_like=my_like, my_dislike=my_dislike,
+                                 in_playlist=in_playlist)
+
+
+@app.route('/like/<int:song_id>')
+def like_page(song_id):
+    session = db_session.create_session()
+    like = session.query(Like).filter(Like.song_id == song_id,
+                                      Like.user_id == flask_login.current_user.id).first()
+    dislike = session.query(Dislike).filter(Dislike.song_id == song_id,
+                                            Dislike.user_id == flask_login.current_user.id).first()
+    if like:
+        session.delete(like)
+    else:
+        if dislike:
+            session.delete(dislike)
+        like = Like(song_id=song_id, user_id=flask_login.current_user.id)
+        session.add(like)
+    session.commit()
+    return flask.redirect('/song/' + str(song_id))
+
+
+@app.route('/dislike/<int:song_id>')
+def dislike_page(song_id):
+    session = db_session.create_session()
+    like = session.query(Like).filter(Like.song_id == song_id,
+                                      Like.user_id == flask_login.current_user.id).first()
+    dislike = session.query(Dislike).filter(Dislike.song_id == song_id,
+                                      Dislike.user_id == flask_login.current_user.id).first()
+    if dislike:
+        session.delete(dislike)
+    else:
+        if like:
+            session.delete(like)
+        dislike = Dislike(song_id=song_id, user_id=flask_login.current_user.id)
+        session.add(dislike)
+    session.commit()
+    return flask.redirect('/song/' + str(song_id))
+
+
+@app.route('/playlist/<int:song_id>')
+def playlist_page(song_id):
+    if flask_login.current_user.playlist:
+        playlist = {int(i) for i in flask_login.current_user.playlist.split(', ')}
+    else:
+        playlist = set()
+    if song_id in playlist:
+        playlist.discard(song_id)
+    else:
+        playlist.add(song_id)
+    playlist = ', '.join([str(i) for i in list(playlist)])
+    session = db_session.create_session()
+    user = session.query(User).filter(User.id == flask_login.current_user.id).first()
+    user.playlist = playlist
+    session.commit()
+    return flask.redirect('/song/' + str(song_id))
 
 
 @login_manager.user_loader
