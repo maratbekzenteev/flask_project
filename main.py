@@ -1,14 +1,17 @@
 import flask
 import flask_login
+import os
 
 from data import db_session
-from flask_login import LoginManager, login_user
+from flask_login import LoginManager, login_user, login_required, logout_user
 from data.users import User
 from data.artists import Artist
 from data.songs import Song
 from data.genres import Genre
 from data.likes import Like
 from data.dislikes import Dislike
+from wtforms import SelectField
+from wtforms.validators import DataRequired
 from forms import SignInForm, SignUpForm, SearchForm, SongSubmitForm, \
     ArtistSubmitForm, GenreSubmitForm, CatalogueForm
 
@@ -92,10 +95,16 @@ def catalogue():
     search_form = SearchForm()
     if search_form.validate_on_submit():
         return flask.redirect(flask.url_for('search', search_title=search_form.search_title.data))
-    form = CatalogueForm()
+    session = db_session.create_session()
+
+    class CatalogueForm2(CatalogueForm):
+        genres = session.query(Genre).all()
+        genre = SelectField('Жанр', choices=([''] + [i.title for i in genres]), validators=[DataRequired()])
+
+    form = CatalogueForm2()
     if form.validate_on_submit():
         return flask.redirect(flask.url_for('catalogue_filter', genre=form.genre.data))
-    session = db_session.create_session()
+
     songs = session.query(Song).all()
     return flask.render_template('catalogue.html', title='Каталог', form=form,
                                  search_form=search_form, songs=songs)
@@ -106,10 +115,15 @@ def catalogue_filter(genre):
     search_form = SearchForm()
     if search_form.validate_on_submit():
         return flask.redirect(flask.url_for('search', search_title=search_form.search_title.data))
-    form = CatalogueForm()
+    session = db_session.create_session()
+
+    class CatalogueForm2(CatalogueForm):
+        genres = session.query(Genre).all()
+        genre = SelectField('Жанр', choices=([''] + [i.title for i in genres]), validators=[DataRequired()])
+
+    form = CatalogueForm2()
     if form.validate_on_submit():
         return flask.redirect(flask.url_for('catalogue_filter', genre=form.genre.data))
-    session = db_session.create_session()
     genre_id = session.query(Genre).filter(Genre.title == genre).first().id
     songs = session.query(Song).filter(Song.genre_id == genre_id).all()
     return flask.render_template('catalogue.html', title='Каталог', form=form,
@@ -121,7 +135,13 @@ def song_submit():
     search_form = SearchForm()
     if search_form.validate_on_submit():
         return flask.redirect(flask.url_for('search', search_title=search_form.search_title.data))
-    form = SongSubmitForm()
+    session = db_session.create_session()
+
+    class SongSubmitForm2(SongSubmitForm):
+        genres = session.query(Genre).all()
+        genre = SelectField('Жанр', choices=[i.title for i in genres], validators=[DataRequired()])
+
+    form = SongSubmitForm2()
     if form.validate_on_submit():
         img_name = form.img.data.filename
         wav_name = form.wav.data.filename
@@ -129,7 +149,6 @@ def song_submit():
                 wav_name[wav_name.rfind('.'):] not in ['.mp3', '.wav', '.ogg']:
             return flask.render_template('song_submit.html', title='Загрузить песню', form=form,
                                          search_form=search_form, message='Неверный формат файлов')
-        session = db_session.create_session()
         artist = session.query(Artist).filter(
             Artist.title.like('%' + form.artist.data + '%')).first()
         if not artist:
@@ -215,29 +234,35 @@ def genre_submit():
                                  form=form, search_form=search_form)
 
 
-@app.route('/song/<int:song_id>')
+@app.route('/song/<int:song_id>', methods=['GET', 'POST'])
 def song_page(song_id):
     search_form = SearchForm()
     if search_form.validate_on_submit():
         return flask.redirect(flask.url_for('search', search_title=search_form.search_title.data))
     session = db_session.create_session()
     song = session.query(Song).filter(Song.id == song_id).first()
-    my_like = len(session.query(Like).filter(
-        Like.song_id == song_id, Like.user_id == flask_login.current_user.id).all())
-    my_dislike = len(session.query(Dislike).filter(
-        Dislike.song_id == song_id, Dislike.user_id == flask_login.current_user.id).all())
-    likes = len(session.query(Like).filter(Like.song_id == song_id).all())
-    dislikes = len(session.query(Dislike).filter(Dislike.song_id == song_id).all())
-    img_url = flask.url_for('static', filename='songs_img/' + song.img_name)
-    wav_url = flask.url_for('static', filename='wav/' + song.wav_name)
-    if flask_login.current_user.playlist:
-        in_playlist = song_id in {int(i) for i in flask_login.current_user.playlist.split(', ')}
-    else:
-        in_playlist = False
-    return flask.render_template("song_page.html", title=song.title, song=song,
-                                 wav_url=wav_url, img_url=img_url, likes=likes, dislikes=dislikes,
-                                 search_form=search_form, my_like=my_like, my_dislike=my_dislike,
-                                 in_playlist=in_playlist)
+    if song:
+        if flask_login.current_user.is_authenticated:
+            my_like = len(session.query(Like).filter(
+                Like.song_id == song_id, Like.user_id == flask_login.current_user.id).all())
+            my_dislike = len(session.query(Dislike).filter(
+                Dislike.song_id == song_id, Dislike.user_id == flask_login.current_user.id).all())
+        else:
+            my_like = False
+            my_dislike = False
+        likes = len(session.query(Like).filter(Like.song_id == song_id).all())
+        dislikes = len(session.query(Dislike).filter(Dislike.song_id == song_id).all())
+        img_url = flask.url_for('static', filename='songs_img/' + song.img_name)
+        wav_url = flask.url_for('static', filename='wav/' + song.wav_name)
+        if flask_login.current_user.is_authenticated and flask_login.current_user.playlist:
+            in_playlist = song_id in {int(i) for i in flask_login.current_user.playlist.split(', ')}
+        else:
+            in_playlist = False
+        return flask.render_template("song_page.html", title=song.title, song=song,
+                                     wav_url=wav_url, img_url=img_url, likes=likes, dislikes=dislikes,
+                                     search_form=search_form, my_like=my_like, my_dislike=my_dislike,
+                                     in_playlist=in_playlist)
+    return flask.render_template("not_found.html", title='Ошибка', search_form=search_form)
 
 
 @app.route('/like/<int:song_id>')
@@ -294,10 +319,40 @@ def playlist_page(song_id):
     return flask.redirect('/song/' + str(song_id))
 
 
+@app.route('/licence', methods=['GET', 'POST'])
+def licence():
+    search_form = SearchForm()
+    if search_form.validate_on_submit():
+        return flask.redirect(flask.url_for('search', search_title=search_form.search_title.data))
+    return flask.render_template('licence.html', title='Правообладателям', search_form=search_form)
+
+
+@app.route('/about', methods=['GET', 'POST'])
+def about():
+    search_form = SearchForm()
+    if search_form.validate_on_submit():
+        return flask.redirect(flask.url_for('search', search_title=search_form.search_title.data))
+    return flask.render_template('about.html', title='О нас', search_form=search_form)
+
+
+@app.route('/prototype', methods=['GET'])
+def prototype():
+    return flask.render_template('prototype.html')
+
+
 @login_manager.user_loader
 def load_user(user_id):
     session = db_session.create_session()
     return session.query(User).get(user_id)
 
 
-app.run(host='127.0.0.1')
+@app.route('/signout')
+@login_required
+def signout():
+    logout_user()
+    return flask.redirect("/")
+
+
+if __name__ == '__main__':
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)

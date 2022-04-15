@@ -14,8 +14,9 @@
         <p><strong>Music</strong></p>
         <a href="/catalogue">Каталог</a>
         {% if current_user.is_authenticated %}
-        <a href="/profile">Мой профиль</a>
+        <a href={{ "/user/" + current_user.id|string }}>Мой профиль</a>
         <a href="/song-submit">Загрузить песню</a>
+        <a href="/signout">Выйти</a>
         {% else %}
         <a href="/signin">Войти</a>
         {% endif %}
