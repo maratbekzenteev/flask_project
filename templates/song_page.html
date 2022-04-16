@@ -9,13 +9,13 @@
         <td><strong>Исполнитель: </strong><a href={{ "/artist/" + song.artist_id|string }}>{{ song.artist.title }}</a></td>
     </tr>
     <tr bgcolor="ffffff">
-        <td><strong>Жанр: </strong>{{ song.genre.title }}</td>
+        <td><strong>Жанр: </strong><a href="{{ "/catalogue/" + song.genre.title }}">{{ song.genre.title }}</a></td>
     </tr>
     <tr bgcolor="eeeeee">
-        <td><strong>Добавил юзер: </strong>{{ song.user.title }}</td>
+        <td><strong>Добавил юзер: </strong><a href="{{ "/user/" + song.user_id|string }}">{{ song.user.title }}</a></td>
     </tr>
     <tr bgcolor="ffffff">
-        <td><audio controls src="{{ wav_url }}"></audio></td>
+        <td><audio controls src="{{ wav_url }}" style="width:100%;"></audio></td>
     </tr>
     <tr bgcolor="eeeeee">
         <td>Нравится {{ likes }} людям{% if my_like %}(включая меня){% endif %}. Не нравится {{ dislikes }} людям{% if my_dislike %}(включая меня){% endif %}.</td>

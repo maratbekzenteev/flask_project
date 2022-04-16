@@ -16,7 +16,7 @@ from forms import SignInForm, SignUpForm, SearchForm, SongSubmitForm, \
     ArtistSubmitForm, GenreSubmitForm, CatalogueForm
 
 app = flask.Flask(__name__)
-app.config['SECRET_KEY'] = 'beta-secret-key'
+app.config['SECRET_KEY'] = 'anti-csrf-release-secret-key'
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -186,13 +186,13 @@ def artist_submit():
     if form.validate_on_submit():
         img_name = form.img.data.filename
         if img_name[img_name.rfind('.'):] not in ['.jpg', '.png', '.gif']:
-            return flask.render_template("artist_submit.html", title='Добавить исполнителя',
+            return flask.render_template('artist_submit.html', title='Добавить исполнителя',
                                          form=form, search_form=search_form,
                                          message='Неверный формат файла')
         session = db_session.create_session()
         artist = session.query(Artist).filter(Artist.title == form.title.data).first()
         if artist:
-            return flask.render_template("artist_submit.html", title='Добавить исполнителя',
+            return flask.render_template('artist_submit.html', title='Добавить исполнителя',
                                          form=form, search_form=search_form,
                                          message='Такой исполнитель уже есть в базе')
         current_id = session.query(Artist).order_by(-Artist.id).first()
@@ -208,7 +208,7 @@ def artist_submit():
         session.add(artist)
         session.commit()
         return flask.redirect('/')
-    return flask.render_template("artist_submit.html", title='Добавить исполнителя',
+    return flask.render_template('artist_submit.html', title='Добавить исполнителя',
                                  form=form, search_form=search_form)
 
 
@@ -217,20 +217,19 @@ def genre_submit():
     search_form = SearchForm()
     if search_form.validate_on_submit():
         return flask.redirect(flask.url_for('search', search_title=search_form.search_title.data))
-    from forms import GenreSubmitForm
     form = GenreSubmitForm()
     if form.validate_on_submit():
         session = db_session.create_session()
         genre = session.query(Genre).filter(Genre.title == form.title.data.lower()).first()
         if genre:
-            return flask.render_template("genre_submit.html", title='Добавить жанр',
+            return flask.render_template('genre_submit.html', title='Добавить жанр',
                                          form=form, search_form=search_form,
                                          message='Такой жанр уже есть')
         genre = Genre(title=form.title.data.lower())
         session.add(genre)
         session.commit()
         return flask.redirect('/')
-    return flask.render_template("genre_submit.html", title='Добавить жанр',
+    return flask.render_template('genre_submit.html', title='Добавить жанр',
                                  form=form, search_form=search_form)
 
 
@@ -258,11 +257,11 @@ def song_page(song_id):
             in_playlist = song_id in {int(i) for i in flask_login.current_user.playlist.split(', ')}
         else:
             in_playlist = False
-        return flask.render_template("song_page.html", title=song.title, song=song,
+        return flask.render_template('song_page.html', title=song.title, song=song,
                                      wav_url=wav_url, img_url=img_url, likes=likes, dislikes=dislikes,
                                      search_form=search_form, my_like=my_like, my_dislike=my_dislike,
                                      in_playlist=in_playlist)
-    return flask.render_template("not_found.html", title='Ошибка', search_form=search_form)
+    return flask.render_template('not_found.html', title='Ошибка', search_form=search_form)
 
 
 @app.route('/like/<int:song_id>')
@@ -317,6 +316,40 @@ def playlist_page(song_id):
     user.playlist = playlist
     session.commit()
     return flask.redirect('/song/' + str(song_id))
+
+
+@app.route('/user/<int:user_id>', methods=['GET', 'POST'])
+def user_page(user_id):
+    search_form = SearchForm()
+    if search_form.validate_on_submit():
+        return flask.redirect(flask.url_for('search', search_title=search_form.search_title.data))
+    session = db_session.create_session()
+    user = session.query(User).filter(User.id == user_id).first()
+    if user:
+        uploaded = session.query(Song).filter(Song.user_id == user_id).all()
+        if user.playlist:
+            playlist = {int(i) for i in user.playlist.split(', ')}
+        else:
+            playlist = set()
+        playlist = session.query(Song).filter(Song.id.in_(playlist)).all()
+        return flask.render_template('user_page.html', title=user.title, search_form=search_form,
+                                     user=user, uploaded=uploaded, playlist=playlist)
+    return flask.render_template('not_found.html', title='Ошибка', search_form=search_form)
+
+
+@app.route('/artist/<int:artist_id>', methods=['GET', 'POST'])
+def artist_page(artist_id):
+    search_form = SearchForm()
+    if search_form.validate_on_submit():
+        return flask.redirect(flask.url_for('search', search_title=search_form.search_title.data))
+    session = db_session.create_session()
+    artist = session.query(Artist).filter(Artist.id == artist_id).first()
+    if artist:
+        songs = session.query(Song).filter(Song.artist_id == artist_id)
+        img_url = flask.url_for('static', filename='artists_img/' + artist.img_name)
+        return flask.render_template('artist_page.html', title=artist.title, search_form=search_form,
+                                     artist=artist, songs=songs, img_url=img_url)
+    return flask.render_template('not_found.html', title='Ошибка', search_form=search_form)
 
 
 @app.route('/licence', methods=['GET', 'POST'])

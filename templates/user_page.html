@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Профиль пользователя {{ user.title }}</h2>
+<h4>Плейлист:</h4>
+<div class="list">
+    <table cellpadding="7px" width="100%">
+        <tr bgcolor="#ffffff">
+            <th width="15%">Номер</th>
+            <th width="35%">Название</th>
+            <th width="35%">Исполнитель</th>
+            <th width="15%">Жанр</th>
+        </tr>
+        {% for song in playlist %}
+        {% if loop.index % 2 == 0 %}
+        <tr bgcolor="#ffffff">
+            <td width="15%">{{ loop.index}}</td>
+            <td width="35%"><a href={{ "/song/" + song.id|string }}>{{ song.title }}</a></td>
+            <td width="35%">{{ song.artist.title }}</td>
+            <td width="15%">{{ song.genre.title }}</td>
+        </tr>
+        {% else %}
+        <tr bgcolor="#eeeeee">
+            <td width="15%">{{ loop.index }}</td>
+            <td width="35%"><a href={{ "/song/" + song.id|string }}>{{ song.title }}</a></td>
+            <td width="35%">{{ song.artist.title }}</td>
+            <td width="15%">{{ song.genre.title }}</td>
+        </tr>
+        {% endif %}
+        {% endfor %}
+    </table>
+</div>
+<h4>Загруженные песни:</h4>
+<div class="list">
+    <table cellpadding="7px" width="100%">
+        <tr bgcolor="#ffffff">
+            <th width="15%">Номер</th>
+            <th width="35%">Название</th>
+            <th width="35%">Исполнитель</th>
+            <th width="15%">Жанр</th>
+        </tr>
+        {% for song in uploaded %}
+        {% if loop.index % 2 == 0 %}
+        <tr bgcolor="#ffffff">
+            <td width="15%">{{ loop.index}}</td>
+            <td width="35%"><a href={{ "/song/" + song.id|string }}>{{ song.title }}</a></td>
+            <td width="35%">{{ song.artist.title }}</td>
+            <td width="15%">{{ song.genre.title }}</td>
+        </tr>
+        {% else %}
+        <tr bgcolor="#eeeeee">
+            <td width="15%">{{ loop.index }}</td>
+            <td width="35%"><a href={{ "/song/" + song.id|string }}>{{ song.title }}</a></td>
+            <td width="35%">{{ song.artist.title }}</td>
+            <td width="15%">{{ song.genre.title }}</td>
+        </tr>
+        {% endif %}
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}
