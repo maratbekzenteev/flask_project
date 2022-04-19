@@ -2,6 +2,7 @@ import flask
 import flask_login
 import os
 
+from zipfile import ZipFile
 from data import db_session
 from flask_login import LoginManager, login_user, login_required, logout_user
 from data.users import User
@@ -384,6 +385,33 @@ def load_user(user_id):
 def signout():
     logout_user()
     return flask.redirect("/")
+
+
+@app.route('/get_song/<int:song_id>', methods=['GET'])
+def get_song(song_id):
+    session = db_session.create_session()
+    song = session.query(Song).filter(Song.id == song_id).first()
+    if not song:
+        return flask.make_response(flask.jsonify({'error': 'song not found'}), 404)
+    song_format = song.wav_name[song.wav_name.rfind('.'):]
+    print(song_format)
+    return flask.send_file('static/wav/' + song.wav_name, as_attachment=True,
+                           download_name=song.title + song_format)
+
+
+@app.route('/get_artist/<int:artist_id>', methods=['GET'])
+def get_artist(artist_id):
+    session = db_session.create_session()
+    songs = session.query(Song).filter(Song.artist_id == artist_id).all()
+    if songs:
+        with ZipFile('artist.zip', 'w') as zip:
+            for id, song in enumerate(songs):
+                print(song.id)
+                zip.write('static/wav/' + song.wav_name,
+                          arcname=str(id + 1) + song.wav_name[song.wav_name.rfind('.'):])
+        return flask.send_file('artist.zip', as_attachment=True)
+    return flask.make_response(flask.jsonify(
+        {'error': 'artist has no songs or does not exist'}), 404)
 
 
 if __name__ == '__main__':
