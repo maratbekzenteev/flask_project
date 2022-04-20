@@ -1,0 +1,39 @@
+songs {
+id
+title
+artist_id
+genre_id
+user_id
+img_name
+wav_name
+}
+
+genres {
+id
+title
+}
+
+artists {
+id
+title
+# img_name
+}
+
+users {
+id
+title
+hashed_password
+playlist
+}
+
+likes {
+id
+user_id
+song_id
+}
+
+dislikes {
+id
+user_id
+song_id
+}
