@@ -16,6 +16,7 @@ from wtforms.validators import DataRequired
 from forms import SignInForm, SignUpForm, SearchForm, SongSubmitForm, \
     ArtistSubmitForm, GenreSubmitForm, CatalogueForm
 
+# инициализация системных компонентов
 app = flask.Flask(__name__)
 app.config['SECRET_KEY'] = 'anti-csrf-release-secret-key'
 
@@ -25,6 +26,7 @@ login_manager.init_app(app)
 db_session.global_init("db/music.db")
 
 
+# домашняя страница (пустая)
 @app.route('/', methods=['GET', 'POST'])
 def home():
     search_form = SearchForm()
@@ -33,6 +35,7 @@ def home():
     return flask.render_template('home.html', title='Домашняя страница', search_form=search_form)
 
 
+# обработчик поискового запроса (совпадения выбираются с учетом регистра)
 @app.route('/search/<string:search_title>', methods=['GET', 'POST'])
 def search(search_title):
     search_form = SearchForm()
@@ -46,6 +49,7 @@ def search(search_title):
                                  search_title=search_title, search_form=search_form)
 
 
+# обработчик формы входа
 @app.route('/signin', methods=['GET', 'POST'])
 def signin():
     search_form = SearchForm()
@@ -64,6 +68,7 @@ def signin():
     return flask.render_template('signin.html', title='Войти', form=form, search_form=search_form)
 
 
+# обработчик формы регистрации (пароль может быть любым)
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     search_form = SearchForm()
@@ -91,6 +96,7 @@ def signup():
                                  search_form=search_form)
 
 
+# обработчик страницы каталога всех песен
 @app.route('/catalogue', methods=['GET', 'POST'])
 def catalogue():
     search_form = SearchForm()
@@ -111,6 +117,7 @@ def catalogue():
                                  search_form=search_form, songs=songs)
 
 
+# обработчик страницы каталога песен указанного жанра (в форме CatalogueForm)
 @app.route('/catalogue/<string:genre>', methods=['GET', 'POST'])
 def catalogue_filter(genre):
     search_form = SearchForm()
@@ -131,6 +138,13 @@ def catalogue_filter(genre):
                                  search_form=search_form, songs=songs)
 
 
+# обработчик формы добавления песни
+# условия добавления:
+# х Обложка песни загружена в адекватном формате (PNG, JPG, GIF)
+# х Аудиодорожка с песней загружена в адекватном формате (MP3, WAV, Ogg Vorbis)
+# х В БД есть такой исполнитель, в чьем имени содержится (с учетом регистра) указанная в форме подстрока
+#   (например, если пользователь написал "Beatles", а в БД есть "The Beatles", то песня будет присвоена им
+# имена файлов с аудиодорожками и обложками совпадают с ID песен
 @app.route('/song-submit', methods=['GET', 'POST'])
 def song_submit():
     search_form = SearchForm()
@@ -146,7 +160,7 @@ def song_submit():
     if form.validate_on_submit():
         img_name = form.img.data.filename
         wav_name = form.wav.data.filename
-        if img_name[img_name.rfind('.'):] not in ['.jpg', '.png', '.gif'] or \
+        if img_name[img_name.rfind('.'):] not in ['.jpg', '.png', '.gif', '.jpeg'] or \
                 wav_name[wav_name.rfind('.'):] not in ['.mp3', '.wav', '.ogg']:
             return flask.render_template('song_submit.html', title='Загрузить песню', form=form,
                                          search_form=search_form, message='Неверный формат файлов')
@@ -178,6 +192,11 @@ def song_submit():
                           search_form=search_form)
 
 
+# обработчик формы добавления исполнителя
+# условия добавления:
+# х Картинка исполнителя загружена в адекватном формате (JPG, PNG или GIF)
+# х Исполнителя с таким именем (с учетом регистра) нет в БД
+# имена файлов с аудиодорожками и обложками совпадают с ID исполнителей
 @app.route('/artist-submit', methods=['GET', 'POST'])
 def artist_submit():
     search_form = SearchForm()
@@ -186,7 +205,7 @@ def artist_submit():
     form = ArtistSubmitForm()
     if form.validate_on_submit():
         img_name = form.img.data.filename
-        if img_name[img_name.rfind('.'):] not in ['.jpg', '.png', '.gif']:
+        if img_name[img_name.rfind('.'):] not in ['.jpg', '.png', '.gif', '.jpeg']:
             return flask.render_template('artist_submit.html', title='Добавить исполнителя',
                                          form=form, search_form=search_form,
                                          message='Неверный формат файла')
@@ -213,6 +232,9 @@ def artist_submit():
                                  form=form, search_form=search_form)
 
 
+# обработчик формы добавления жанра
+# условия добавления:
+# х Жанр с таким названием уже есть в БД (все жанры записаны в нижнем регистре)
 @app.route('/genre-submit', methods=['GET', 'POST'])
 def genre_submit():
     search_form = SearchForm()
@@ -234,6 +256,7 @@ def genre_submit():
                                  form=form, search_form=search_form)
 
 
+# обработчик страницы песни
 @app.route('/song/<int:song_id>', methods=['GET', 'POST'])
 def song_page(song_id):
     search_form = SearchForm()
@@ -265,6 +288,7 @@ def song_page(song_id):
     return flask.render_template('not_found.html', title='Ошибка', search_form=search_form)
 
 
+# добавление или удаление лайка песне
 @app.route('/like/<int:song_id>')
 def like_page(song_id):
     session = db_session.create_session()
@@ -283,6 +307,7 @@ def like_page(song_id):
     return flask.redirect('/song/' + str(song_id))
 
 
+# добавление или удаление дизлайка песне
 @app.route('/dislike/<int:song_id>')
 def dislike_page(song_id):
     session = db_session.create_session()
@@ -301,6 +326,7 @@ def dislike_page(song_id):
     return flask.redirect('/song/' + str(song_id))
 
 
+# добавление или удаление песни из плейлиста пользователя
 @app.route('/playlist/<int:song_id>')
 def playlist_page(song_id):
     if flask_login.current_user.playlist:
@@ -319,6 +345,7 @@ def playlist_page(song_id):
     return flask.redirect('/song/' + str(song_id))
 
 
+# обработчик страницы профиля пользователя
 @app.route('/user/<int:user_id>', methods=['GET', 'POST'])
 def user_page(user_id):
     search_form = SearchForm()
@@ -338,6 +365,7 @@ def user_page(user_id):
     return flask.render_template('not_found.html', title='Ошибка', search_form=search_form)
 
 
+# обработчик страницы исполнителя
 @app.route('/artist/<int:artist_id>', methods=['GET', 'POST'])
 def artist_page(artist_id):
     search_form = SearchForm()
@@ -353,6 +381,7 @@ def artist_page(artist_id):
     return flask.render_template('not_found.html', title='Ошибка', search_form=search_form)
 
 
+# обработчик страницы "правообладателям"
 @app.route('/licence', methods=['GET', 'POST'])
 def licence():
     search_form = SearchForm()
@@ -361,6 +390,7 @@ def licence():
     return flask.render_template('licence.html', title='Правообладателям', search_form=search_form)
 
 
+# обработчик страницы "о нас"
 @app.route('/about', methods=['GET', 'POST'])
 def about():
     search_form = SearchForm()
@@ -369,17 +399,20 @@ def about():
     return flask.render_template('about.html', title='О нас', search_form=search_form)
 
 
+# обработчик страницы с самой первой страницей сайта (сентябрь 2021)
 @app.route('/prototype', methods=['GET'])
 def prototype():
     return flask.render_template('prototype.html')
 
 
+# вход в аккаунт (в login manager'e)
 @login_manager.user_loader
 def load_user(user_id):
     session = db_session.create_session()
     return session.query(User).get(user_id)
 
 
+# выход из аккаунта
 @app.route('/signout')
 @login_required
 def signout():
@@ -387,6 +420,7 @@ def signout():
     return flask.redirect("/")
 
 
+# REST API: получение песни по ID
 @app.route('/get_song/<int:song_id>', methods=['GET'])
 def get_song(song_id):
     session = db_session.create_session()
@@ -399,6 +433,8 @@ def get_song(song_id):
                            download_name=song.title + song_format)
 
 
+# REST API
+# REST API: получение всех песен исполнителя по ID
 @app.route('/get_artist/<int:artist_id>', methods=['GET'])
 def get_artist(artist_id):
     session = db_session.create_session()
@@ -414,6 +450,7 @@ def get_artist(artist_id):
         {'error': 'artist has no songs or does not exist'}), 404)
 
 
+# блок запуска приложения
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
