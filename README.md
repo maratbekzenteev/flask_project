@@ -28,7 +28,7 @@ No production server is running this application as of March 2025.
 
 ## Legal notice
 
-This web application was made in educational purposes and is not liable
+This web application was made for educational purposes and is not liable
 for the material uploaded by the users.
 
 ## Project structure
